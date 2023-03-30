@@ -1,0 +1,6 @@
+github.com/Adam7066/golang v0.0.0-20230306032425-bb3e81d0b621 h1:/rIePTZPK/gLtHaJWbH++z8Ceal7TOj3Qb1NBbPMVzY=
+github.com/Adam7066/golang v0.0.0-20230306032425-bb3e81d0b621/go.mod h1:njqMT3y7oHdR7VgpHo2OrkckA1CGor70NEPVNQ6Q2Nw=
+github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
+github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
+golang.org/x/text v0.8.0 h1:57P1ETyNKtuIjB4SRd15iJxuhj8Gc416Y78H3qgMh68=
+golang.org/x/text v0.8.0/go.mod h1:e1OnstbJyHTd6l/uOt8jFFHp6TRDWZR/bV3emEE/zU8=
