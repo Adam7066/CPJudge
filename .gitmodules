@@ -1,0 +1,3 @@
+[submodule "judgeEnv"]
+	path = judgeEnv
+	url = git@github.com:jw910731/computer-programming-ta-env.git
