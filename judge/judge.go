@@ -1,0 +1,68 @@
+package judge
+
+import (
+	"CPJudge/myPath"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+
+	"github.com/Adam7066/golang/log"
+	cp "github.com/otiai10/copy"
+)
+
+func AutoRun(extractPath string) {
+	err := filepath.Walk(extractPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() && path != extractPath {
+			// Create share/stu
+			judgeEnvDir := filepath.Join(myPath.GetRootPath(), "judgeEnv")
+			workingDir := filepath.Join(judgeEnvDir, "working_copy")
+			shareDir := filepath.Join(judgeEnvDir, "share")
+			shareStuDir := filepath.Join(shareDir, "stu")
+			// Copy student code to share
+			err := os.RemoveAll(shareStuDir)
+			if err != nil {
+				return err
+			}
+			err = os.MkdirAll(shareStuDir, os.ModePerm)
+			if err != nil {
+				return err
+			}
+			err = cp.Copy(path, shareStuDir)
+			if err != nil {
+				return err
+			}
+			// Run judge
+			err = os.RemoveAll(workingDir)
+			if err != nil {
+				return err
+			}
+			err = cp.Copy(shareDir, workingDir)
+			if err != nil {
+				return err
+			}
+			log.Info.Println("Run judge: " + path)
+			cmd := exec.Command(
+				"docker-compose", "run", "--rm", "homework",
+				"/bin/bash",
+			)
+			cmd.Dir = judgeEnvDir
+			cmd.Stdin = os.Stdin
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			err = cmd.Run()
+			if err != nil {
+				fmt.Println(err)
+			}
+			return filepath.SkipDir
+		}
+		return nil
+	})
+	if err != nil {
+		log.Error.Println(err)
+		return
+	}
+}
