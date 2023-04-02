@@ -64,7 +64,7 @@ func AutoRun(extractPath string, limitTime int) {
 				"docker-compose", "run", "--rm",
 				"--name", "cpjudge", "homework",
 				"/bin/bash", "-c",
-				"./autoJudge", "--limitTime="+fmt.Sprint(limitTime),
+				"./autoJudge --limitTime="+fmt.Sprint(limitTime),
 			)
 			cmd.Dir = judgeEnvDir
 			cmd.Stdin = os.Stdin
