@@ -5,6 +5,7 @@ import (
 	"CPJudge/extract"
 	"CPJudge/judge"
 	"CPJudge/myPath"
+	"fmt"
 	"path"
 	"strings"
 )
@@ -15,6 +16,11 @@ func main() {
 	extractPath := path.Join(rootPath, strings.Split(env.HWInfo["HWZip"], ".")[0]+"/extract/")
 	// Extract homework
 	extract.ExtractHomework(hwZipPath, extractPath)
+	// Generate judge file
+	judge.GenJudgeFile(rootPath)
 	// Auto run judge
-	judge.AutoRun(extractPath)
+	fmt.Print("Please input limit time (s), default=1: ")
+	limitTime := 1
+	fmt.Scanln(&limitTime)
+	judge.AutoRun(extractPath, limitTime)
 }

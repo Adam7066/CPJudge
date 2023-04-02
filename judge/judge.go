@@ -6,12 +6,14 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/Adam7066/golang/log"
 	cp "github.com/otiai10/copy"
 )
 
-func AutoRun(extractPath string) {
+func AutoRun(extractPath string, limitTime int) {
+	os.RemoveAll(filepath.Join(extractPath, "..", "output"))
 	err := filepath.Walk(extractPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -36,6 +38,9 @@ func AutoRun(extractPath string) {
 				return err
 			}
 			// Run judge
+			stu := strings.Split(path, "/")[len(strings.Split(path, "/"))-1]
+			stuOutputDir := filepath.Join(extractPath, "..", "output", stu)
+			os.MkdirAll(stuOutputDir, os.ModePerm)
 			err = os.RemoveAll(workingDir)
 			if err != nil {
 				return err
@@ -46,17 +51,20 @@ func AutoRun(extractPath string) {
 			}
 			log.Info.Println("Run judge: " + path)
 			cmd := exec.Command(
-				"docker-compose", "run", "--rm", "homework",
-				"/bin/bash",
+				"docker-compose", "run", "--rm",
+				"--name", "cpjudge", "homework",
+				"/bin/bash", "-c",
+				"./autoJudge", "--limitTime="+fmt.Sprint(limitTime),
 			)
 			cmd.Dir = judgeEnvDir
 			cmd.Stdin = os.Stdin
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
-			err = cmd.Run()
-			if err != nil {
+			if err = cmd.Run(); err != nil {
 				fmt.Println(err)
 			}
+			// move output to output folder
+			cp.Copy(filepath.Join(workingDir, "output"), stuOutputDir)
 			return filepath.SkipDir
 		}
 		return nil
