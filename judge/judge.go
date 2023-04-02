@@ -50,6 +50,16 @@ func AutoRun(extractPath string, limitTime int) {
 				return err
 			}
 			log.Info.Println("Run judge: " + path)
+			outFile, err := os.Create(filepath.Join(stuOutputDir, "out"))
+			if err != nil {
+				return err
+			}
+			defer outFile.Close()
+			errorFile, err := os.Create(filepath.Join(stuOutputDir, "error"))
+			if err != nil {
+				return err
+			}
+			defer errorFile.Close()
 			cmd := exec.Command(
 				"docker-compose", "run", "--rm",
 				"--name", "cpjudge", "homework",
@@ -58,8 +68,8 @@ func AutoRun(extractPath string, limitTime int) {
 			)
 			cmd.Dir = judgeEnvDir
 			cmd.Stdin = os.Stdin
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
+			cmd.Stdout = outFile
+			cmd.Stderr = errorFile
 			if err = cmd.Run(); err != nil {
 				fmt.Println(err)
 			}
