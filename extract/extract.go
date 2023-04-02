@@ -1,6 +1,7 @@
 package extract
 
 import (
+	"CPJudge/env"
 	"CPJudge/myPath"
 	"archive/zip"
 	"fmt"
@@ -57,12 +58,12 @@ func unzip(src string, dest string) ([]string, error) {
 	return filenames, nil
 }
 
-func ExtractHomework(hwZipPath, extractPath string) {
+func ExtractHomework() {
 	// Unzip the homework
-	if myPath.Exists(extractPath) {
-		os.RemoveAll(extractPath)
+	if myPath.Exists(env.ExtractPath) {
+		os.RemoveAll(env.ExtractPath)
 	}
-	_, err := unzip(hwZipPath, extractPath)
+	_, err := unzip(env.HWZipPath, env.ExtractPath)
 	if err != nil {
 		log.Error.Println(err)
 		return
@@ -70,11 +71,11 @@ func ExtractHomework(hwZipPath, extractPath string) {
 	// Rename the student folder
 	oldPathSlice := []string{}
 	newPathSlice := []string{}
-	err = filepath.Walk(extractPath, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(env.ExtractPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if info.IsDir() && path != extractPath {
+		if info.IsDir() && path != env.ExtractPath {
 			tmpSlice := strings.Split(path, "/")
 			newPath := "/"
 			for i := 0; i < len(tmpSlice)-1; i++ {
@@ -94,7 +95,7 @@ func ExtractHomework(hwZipPath, extractPath string) {
 		os.Rename(oldPathSlice[i], newPathSlice[i])
 	}
 	// Unzip student zip
-	err = filepath.Walk(extractPath, func(path string, _ os.FileInfo, err error) error {
+	err = filepath.Walk(env.ExtractPath, func(path string, _ os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
