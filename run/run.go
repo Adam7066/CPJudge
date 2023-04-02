@@ -82,8 +82,9 @@ func runJudge(stuFileDirPath string, limitTime int) {
 				defer cancel()
 				cmd := exec.CommandContext(
 					ctx,
-					"./"+filepath.Join(stuFileDirPath, problem),
+					"./"+problem,
 				)
+				cmd.Dir = stuFileDirPath
 				cmd.Stdin = inputFile
 				cmd.Stdout = outputFile
 				cmd.Stderr = errorFile
