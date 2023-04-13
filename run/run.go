@@ -55,44 +55,52 @@ func runJudge(stuFileDirPath string, limitTime int) {
 			problem := strings.Split(path, "/")[1]
 			testcase := strings.Split(path, "/")[2]
 			os.MkdirAll(filepath.Join(outputPath, problem), os.ModePerm)
+			problemErrorFile, err := os.Open(filepath.Join(outputPath, problem, "err"))
+			if err != nil {
+				return err
+			}
+			defer problemErrorFile.Close()
 			if _, err := os.Stat(filepath.Join(stuFileDirPath, problem)); os.IsNotExist(err) {
-				errorFile, err := os.Create(filepath.Join(outputPath, problem, "err"))
-				if err != nil {
-					return err
-				}
-				defer errorFile.Close()
-				errorFile.WriteString("Can't find " + problem + " file")
-			} else {
-				inputFile, err := os.Open(filepath.Join(testcasePath, problem, testcase))
-				if err != nil {
-					return err
-				}
-				defer inputFile.Close()
-				outputFile, err := os.Create(filepath.Join(outputPath, problem, testcase))
-				if err != nil {
-					return err
-				}
-				defer outputFile.Close()
-				errorFile, err := os.Create(filepath.Join(outputPath, problem, "err_"+testcase))
-				if err != nil {
-					return err
-				}
-				defer errorFile.Close()
-				ctx, cancel := context.WithTimeout(context.Background(), time.Duration(limitTime)*time.Second)
-				defer cancel()
-				cmd := exec.CommandContext(
-					ctx,
-					"./"+problem,
-				)
-				cmd.Dir = stuFileDirPath
-				cmd.Stdin = inputFile
-				cmd.Stdout = outputFile
-				cmd.Stderr = errorFile
-				err = cmd.Run()
-				if err != nil {
-					file, err := os.OpenFile(filepath.Join(outputPath, problem, "err"), os.O_APPEND|os.O_WRONLY, os.ModeAppend)
-					fmt.Fprintln(file, testcase, err)
-				}
+				err := fmt.Errorf("can't find %s file", problem)
+				problemErrorFile.WriteString(err.Error())
+				return err
+			}
+			inputFile, err := os.Open(filepath.Join(testcasePath, problem, testcase))
+			if err != nil {
+				return err
+			}
+			defer inputFile.Close()
+			outputFile, err := os.Create(filepath.Join(outputPath, problem, testcase))
+			if err != nil {
+				return err
+			}
+			defer outputFile.Close()
+			errorFile, err := os.Create(filepath.Join(outputPath, problem, "err_"+testcase))
+			if err != nil {
+				return err
+			}
+			defer errorFile.Close()
+			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(limitTime)*time.Second)
+			defer cancel()
+			cmd := exec.CommandContext(
+				ctx,
+				"valgrind",
+				"--leak-check=full",
+				"--log-file=valgrind.log",
+				"./"+problem,
+			)
+			cmd.Dir = stuFileDirPath
+			cmd.Stdin = inputFile
+			cmd.Stdout = outputFile
+			cmd.Stderr = errorFile
+			err = cmd.Run()
+			if err != nil {
+				fmt.Fprintln(problemErrorFile, testcase, err)
+				return err
+			}
+			err = os.Rename(filepath.Join(stuFileDirPath, "valgrind.log"), filepath.Join(outputPath, problem, "valgrind_"+testcase))
+			if err != nil {
+				fmt.Fprintln(problemErrorFile, testcase, err)
 			}
 		}
 		return nil

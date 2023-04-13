@@ -17,6 +17,7 @@ var ExtractPath string
 var JudgeEnvPath string
 var WorkingPath string
 var SharePath string
+var OutputPath string
 
 var hwInfo = getHWEnv()
 
@@ -36,6 +37,7 @@ func InitEnv(rootPath string) {
 	fmt.Scanln(&LimitTime)
 	HWZipPath = path.Join(rootPath, hwInfo["HWZip"])
 	ExtractPath = path.Join(rootPath, strings.Split(hwInfo["HWZip"], ".")[0]+"/extract/")
+	OutputPath = path.Join(rootPath, strings.Split(hwInfo["HWZip"], ".")[0]+"/output/")
 	JudgeEnvPath = filepath.Join(rootPath, "judgeEnv")
 	WorkingPath = filepath.Join(JudgeEnvPath, "working_copy")
 	SharePath = filepath.Join(JudgeEnvPath, "share")
