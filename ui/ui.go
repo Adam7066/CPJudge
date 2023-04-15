@@ -56,7 +56,7 @@ func Run() {
 		case event.Key() == tcell.KeyEnter:
 			app.Suspend(func() {
 				fmt.Println(selector.CurFileDir())
-				cmd := exec.Command("less", selector.CurFileDir())
+				cmd := exec.Command("less", "-S", selector.CurFileDir())
 				cmd.Stdin = os.Stdin
 				cmd.Stdout = os.Stdout
 				cmd.Stderr = os.Stderr
