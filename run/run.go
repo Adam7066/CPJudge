@@ -55,7 +55,7 @@ func runJudge(stuFileDirPath string, limitTime int) {
 			problem := strings.Split(path, "/")[1]
 			testcase := strings.Split(path, "/")[2]
 			os.MkdirAll(filepath.Join(outputPath, problem), os.ModePerm)
-			problemErrorFile, err := os.Open(filepath.Join(outputPath, problem, "err"))
+			problemErrorFile, err := os.Create(filepath.Join(outputPath, problem, "err"))
 			if err != nil {
 				return err
 			}
