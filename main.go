@@ -4,8 +4,8 @@ import (
 	"CPJudge/env"
 	"CPJudge/extract"
 	"CPJudge/judge"
-	"CPJudge/look"
 	"CPJudge/myPath"
+	"CPJudge/ui"
 	"fmt"
 )
 
@@ -20,5 +20,5 @@ func main() {
 		judge.GenJudgeFile(rootPath)
 		judge.AutoRun()
 	}
-	look.LookOutput()
+	ui.Run()
 }
