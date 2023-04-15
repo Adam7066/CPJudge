@@ -1,6 +1,7 @@
 package selector
 
 import (
+	"bytes"
 	"io"
 	"os"
 	"path/filepath"
@@ -75,13 +76,13 @@ func (s *Selector) CurFileName() string {
 	return s.fs.Students[s.stuPos].Files[s.filePos]
 }
 
-func (s *Selector) CurStuPath() string {
+func (s *Selector) CurStuDir() string {
 	root := s.fs.Root
 	stu := s.CurStuName()
 	return filepath.Join(root, stu)
 }
 
-func (s *Selector) CurFilePath() string {
+func (s *Selector) CurFileDir() string {
 	root := s.fs.Root
 	stu := s.CurStuName()
 	file := s.CurFileName()
@@ -123,21 +124,24 @@ func (s *Selector) Open() (*os.File, error) {
 	return os.Open(filepath.Join(root, stu, file))
 }
 
-func (s *Selector) CurFileContent() ([]byte, error) {
+func (s *Selector) CurFileContent() []byte {
 	if s.buf != nil {
-		return s.buf, nil
+		return s.buf
 	}
+	buf := bytes.NewBuffer([]byte{})
 	f, err := s.Open()
 	if err != nil {
-		return nil, err
+		s.buf = buf.Bytes()
+		return s.buf
 	}
 	defer f.Close()
-	buf, err := io.ReadAll(f)
+	_, err = io.Copy(buf, f)
 	if err != nil {
-		return nil, err
+		s.buf = buf.Bytes()
+		return s.buf
 	}
-	s.buf = buf
-	return buf, nil
+	s.buf = buf.Bytes()
+	return s.buf
 }
 
 func newStudenFS(root string) (*studentFs, error) {
