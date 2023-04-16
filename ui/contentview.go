@@ -1,8 +1,8 @@
 package ui
 
 import (
-	"CPJudge/selector"
-	"bytes"
+	"io"
+	"os"
 	"path/filepath"
 
 	"github.com/rivo/tview"
@@ -10,47 +10,42 @@ import (
 )
 
 type ContentView struct {
-	*tview.Grid
-	text     *tview.TextView
-	image    *tview.Image
-	selector *selector.Selector
+	*tview.Pages
 }
 
-func NewContentView(selector *selector.Selector) *ContentView {
-	text := tview.NewTextView()
-	image := tview.NewImage().
-		SetColors(tview.TrueColor)
-
-	grid := tview.NewGrid().
-		SetRows(0).
-		SetColumns(0)
-
-	c := &ContentView{
-		Grid:     grid,
-		text:     text,
-		image:    image,
-		selector: selector,
+func NewContentView() *ContentView {
+	pages := tview.NewPages()
+	pages.SetBorder(true)
+	return &ContentView{
+		Pages: pages,
 	}
-	c.text.SetDynamicColors(true)
-	return c
 }
 
-func (c *ContentView) Update() {
-	switch filepath.Ext(c.selector.CurFileDir()) {
+func (c *ContentView) Load(dir string) {
+	if c.HasPage(dir) {
+		c.SwitchToPage(dir)
+		return
+	}
+	f, err := os.Open(dir)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	switch filepath.Ext(dir) {
 	case ".bmp":
-		r := bytes.NewReader(c.selector.CurFileContent())
-		img, err := bmp.Decode(r)
+		img, err := bmp.Decode(f)
 		if err != nil {
 			panic(err)
 		}
-		c.image.SetImage(img)
-		c.Clear()
-		c.Grid.AddItem(c.image, 0, 0, 1, 1, 0, 0, false)
+		imageView := tview.NewImage().
+			SetColors(tview.TrueColor).
+			SetImage(img)
+		c.AddPage(dir, imageView, true, true)
 	default:
-		c.text.Clear()
-		w := tview.ANSIWriter(c.text)
-		w.Write(c.selector.CurFileContent())
-		c.Clear()
-		c.Grid.AddItem(c.text, 0, 0, 1, 1, 0, 0, false)
+		textView := tview.NewTextView().
+			SetDynamicColors(true)
+		w := tview.ANSIWriter(textView)
+		io.Copy(w, f)
+		c.AddPage(dir, textView, true, true)
 	}
 }
