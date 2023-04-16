@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
@@ -21,15 +22,29 @@ func Run() {
 		path := node.GetReference().(string)
 		contentView.Load(path)
 	})
+
 	explorer.SetSelectedFunc(func(node *tview.TreeNode) {
-		path := node.GetReference().(string)
-		app.Suspend(func() {
-			cmd := exec.Command("less", "-S", path)
-			cmd.Stdin = os.Stdin
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-			cmd.Run()
-		})
+		app.SetFocus(contentView)
+	})
+
+	contentView.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch {
+		case event.Key() == tcell.KeyEscape || event.Rune() == 'q':
+			app.SetFocus(explorer)
+			return nil
+		case event.Key() == tcell.KeyEnter:
+			node := explorer.GetCurrentNode()
+			path := node.GetReference().(string)
+			app.Suspend(func() {
+				cmd := exec.Command("less", "-S", path)
+				cmd.Stdin = os.Stdin
+				cmd.Stdout = os.Stdout
+				cmd.Stderr = os.Stderr
+				cmd.Run()
+			})
+			return nil
+		}
+		return event
 	})
 
 	main := tview.NewFlex().
@@ -44,6 +59,16 @@ func Run() {
 	root.SetBorder(true)
 
 	app = tview.NewApplication().SetRoot(root, true).SetFocus(root)
+
+	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch {
+		case explorer.HasFocus() && (event.Key() == tcell.KeyEscape || event.Rune() == 'q'):
+			app.Stop()
+		default:
+			return event
+		}
+		return nil
+	})
 
 	if err := app.Run(); err != nil {
 		panic(err)
