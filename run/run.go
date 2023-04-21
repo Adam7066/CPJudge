@@ -1,13 +1,13 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	cp "github.com/otiai10/copy"
@@ -80,10 +80,7 @@ func runJudge(stuFileDirPath string, limitTime int) {
 				return err
 			}
 			defer errorFile.Close()
-			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(limitTime)*time.Second)
-			defer cancel()
-			cmd := exec.CommandContext(
-				ctx,
+			cmd := exec.Command(
 				"valgrind",
 				"--leak-check=full",
 				"--log-file=valgrind.log",
@@ -93,10 +90,25 @@ func runJudge(stuFileDirPath string, limitTime int) {
 			cmd.Stdin = inputFile
 			cmd.Stdout = outputFile
 			cmd.Stderr = errorFile
-			err = cmd.Run()
+			err = cmd.Start()
 			if err != nil {
 				fmt.Fprintln(problemErrorFile, testcase, err)
 				return err
+			}
+			done := make(chan error, 1)
+			go func() {
+				done <- cmd.Wait()
+			}()
+			select {
+			case <-time.After(time.Duration(limitTime) * time.Second):
+				if err := cmd.Process.Signal(syscall.SIGTERM); err != nil {
+					cmd.Process.Kill()
+				}
+				fmt.Fprintln(problemErrorFile, "process killed as timeout reached")
+			case err := <-done:
+				if err != nil {
+					fmt.Fprintf(problemErrorFile, "process finished with error = %v", err)
+				}
 			}
 			err = os.Rename(filepath.Join(stuFileDirPath, "valgrind.log"), filepath.Join(outputPath, problem, "valgrind_"+testcase))
 			if err != nil {
