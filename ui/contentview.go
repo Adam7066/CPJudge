@@ -40,12 +40,20 @@ func (c *ContentView) Load(dir string) {
 		imageView := tview.NewImage().
 			SetColors(tview.TrueColor).
 			SetImage(img)
-		c.AddPage(dir, imageView, true, true)
+		c.AddAndSwitchToPage(dir, imageView, true)
 	default:
 		textView := tview.NewTextView().
 			SetDynamicColors(true)
 		w := tview.ANSIWriter(textView)
 		io.Copy(w, f)
-		c.AddPage(dir, textView, true, true)
+		c.AddAndSwitchToPage(dir, textView, true)
 	}
+}
+
+func (c *ContentView) LoadReader(r io.Reader, name string) {
+	textView := tview.NewTextView().
+		SetDynamicColors(true)
+	w := tview.ANSIWriter(textView)
+	io.Copy(w, r)
+	c.AddAndSwitchToPage(name, textView, true)
 }
