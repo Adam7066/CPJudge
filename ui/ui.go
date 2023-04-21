@@ -9,15 +9,11 @@ import (
 	"github.com/rivo/tview"
 )
 
-var (
-	app      *tview.Application
-	explorer *Explorer
-)
-
 func Run() {
+	app := tview.NewApplication()
+	explorer := NewExplorer(env.OutputPath)
 	contentView := NewContentView()
 
-	explorer = NewExplorer(env.OutputPath)
 	explorer.SetChangedFunc(func(node *tview.TreeNode) {
 		path := node.GetReference().(string)
 		contentView.Load(path)
@@ -31,7 +27,6 @@ func Run() {
 		switch {
 		case event.Key() == tcell.KeyEscape || event.Rune() == 'q':
 			app.SetFocus(explorer)
-			return nil
 		case event.Key() == tcell.KeyEnter:
 			node := explorer.GetCurrentNode()
 			path := node.GetReference().(string)
@@ -42,9 +37,10 @@ func Run() {
 				cmd.Stderr = os.Stderr
 				cmd.Run()
 			})
-			return nil
+		default:
+			return event
 		}
-		return event
+		return nil
 	})
 
 	main := tview.NewFlex().
@@ -58,7 +54,7 @@ func Run() {
 
 	root.SetBorder(true)
 
-	app = tview.NewApplication().SetRoot(root, true).SetFocus(root)
+	app.SetRoot(root, true).SetFocus(root)
 
 	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch {
