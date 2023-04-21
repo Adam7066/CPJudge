@@ -38,8 +38,9 @@ func buildFileTree(dir string) *tview.TreeNode {
 }
 
 func NewExplorer(dir string) *Explorer {
-	tree := tview.NewTreeView()
-	tree.SetBorder(true)
+	treeView := tview.NewTreeView()
+	treeView.SetBorder(true)
+
 	list := list.New()
 	dirEntries, err := os.ReadDir(dir)
 	if err != nil {
@@ -47,41 +48,51 @@ func NewExplorer(dir string) *Explorer {
 	}
 	for _, entry := range dirEntries {
 		path := filepath.Join(dir, entry.Name())
-		tree := buildFileTree(path)
-		list.PushBack(tree)
+		root := buildFileTree(path)
+		list.PushBack(root)
 	}
-	root := list.Front().Value.(*tview.TreeNode)
-	tree.SetRoot(root).SetCurrentNode(root)
 
-	explorer := &Explorer{
-		TreeView: tree,
+	e := &Explorer{
+		TreeView: treeView,
 		list:     list,
 		cur:      list.Front(),
 	}
-	explorer.UpdateTitle()
 
-	explorer.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	e.UpdateRoot()
+	e.UpdateTitle()
+
+	e.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch {
-		case event.Key() == tcell.KeyLeft && explorer.cur.Prev() != nil:
-			explorer.cur = explorer.cur.Prev()
-			explorer.pos--
-			root := explorer.cur.Value.(*tview.TreeNode)
-			explorer.SetRoot(root).SetCurrentNode(root)
-			explorer.UpdateTitle()
-		case event.Key() == tcell.KeyRight && explorer.cur.Next() != nil:
-			explorer.cur = explorer.cur.Next()
-			explorer.pos++
-			root := explorer.cur.Value.(*tview.TreeNode)
-			explorer.SetRoot(root).SetCurrentNode(root)
-			explorer.UpdateTitle()
+		case event.Key() == tcell.KeyLeft:
+			if e.cur.Prev() != nil {
+				e.cur = e.cur.Prev()
+				e.pos--
+				e.UpdateRoot()
+				e.UpdateTitle()
+			}
+		case event.Key() == tcell.KeyRight:
+			if e.cur.Next() != nil {
+				e.cur = e.cur.Next()
+				e.pos++
+				e.UpdateRoot()
+				e.UpdateTitle()
+			}
 		default:
 			return event
 		}
 		return nil
 	})
-	return explorer
+
+	return e
 }
 
 func (e *Explorer) UpdateTitle() {
 	e.SetTitle(fmt.Sprintf("(%d/%d)", e.pos, e.list.Len()))
+}
+
+func (e *Explorer) UpdateRoot() {
+	root := e.cur.Value.(*tview.TreeNode)
+	e.SetRoot(root).SetCurrentNode(root)
+	// force refresh
+	e.TreeView.Move(-1)
 }
