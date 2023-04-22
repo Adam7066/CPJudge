@@ -63,7 +63,12 @@ func ExtractHomework() {
 	if myPath.Exists(env.ExtractPath) {
 		os.RemoveAll(env.ExtractPath)
 	}
-	_, err := unzip(env.HWZipPath, env.ExtractPath)
+	err := os.MkdirAll(env.ExtractPath, os.ModePerm)
+	if err != nil {
+		log.Error.Println(err)
+		return
+	}
+	_, err = unzip(env.HWZipPath, env.ExtractPath)
 	if err != nil {
 		log.Error.Println(err)
 		return
