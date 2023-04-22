@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"CPJudge/ui/uiutil"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -40,12 +42,47 @@ func (c *ContentView) Load(dir string) {
 		imageView := tview.NewImage().
 			SetColors(tview.TrueColor).
 			SetImage(img)
-		c.AddPage(dir, imageView, true, true)
+		c.AddAndSwitchToPage(dir, imageView, true)
 	default:
-		textView := tview.NewTextView().
-			SetDynamicColors(true)
-		w := tview.ANSIWriter(textView)
-		io.Copy(w, f)
-		c.AddPage(dir, textView, true, true)
+		c.LoadReader(f, dir)
 	}
+}
+
+func (c *ContentView) LoadString(s, name string) {
+	textView := tview.NewTextView().
+		SetDynamicColors(true)
+	textView.SetText(tview.TranslateANSI(s))
+	c.AddAndSwitchToPage(name, textView, true)
+}
+
+func (c *ContentView) LoadDiff(srcDir, dstDir, checkpoint string) {
+	name := fmt.Sprintf("%s -> %s", srcDir, dstDir)
+	if c.HasPage(name) {
+		if cur, _ := c.GetFrontPage(); cur == name {
+			c.RemovePage(name)
+			return
+		}
+		c.SetTitle(name)
+		c.SwitchToPage(name)
+		return
+	}
+	src, err := os.ReadFile(srcDir)
+	if err != nil {
+		panic(err)
+	}
+	dst, err := os.ReadFile(dstDir)
+	if err != nil {
+		panic(err)
+	}
+	diff := uiutil.Diff(string(src), string(dst), checkpoint)
+	c.SetTitle(name)
+	c.LoadString(diff, name)
+}
+
+func (c *ContentView) LoadReader(r io.Reader, name string) {
+	textView := tview.NewTextView().
+		SetDynamicColors(true)
+	w := tview.ANSIWriter(textView)
+	io.Copy(w, r)
+	c.AddAndSwitchToPage(name, textView, true)
 }
