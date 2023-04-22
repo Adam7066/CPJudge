@@ -46,6 +46,13 @@ func (c *ContentView) Load(dir string) {
 	}
 }
 
+func (c *ContentView) LoadString(s, name string) {
+	textView := tview.NewTextView().
+		SetDynamicColors(true)
+	textView.SetText(tview.TranslateANSI(s))
+	c.AddAndSwitchToPage(name, textView, true)
+}
+
 func (c *ContentView) LoadReader(r io.Reader, name string) {
 	textView := tview.NewTextView().
 		SetDynamicColors(true)
