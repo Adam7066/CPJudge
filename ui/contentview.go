@@ -42,11 +42,7 @@ func (c *ContentView) Load(dir string) {
 			SetImage(img)
 		c.AddAndSwitchToPage(dir, imageView, true)
 	default:
-		textView := tview.NewTextView().
-			SetDynamicColors(true)
-		w := tview.ANSIWriter(textView)
-		io.Copy(w, f)
-		c.AddAndSwitchToPage(dir, textView, true)
+		c.LoadReader(f, dir)
 	}
 }
 
