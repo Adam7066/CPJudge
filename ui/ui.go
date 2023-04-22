@@ -20,6 +20,9 @@ func Run() {
 
 	initDir(env.OutputPath)
 	explorer := NewExplorer(env.OutputPath)
+	initDir(env.AnsPath)
+	explorer2 := NewExplorer(env.AnsPath)
+
 	contentView := NewContentView()
 
 	explorer.SetChangedFunc(func(node *tview.TreeNode) {
@@ -51,8 +54,13 @@ func Run() {
 		return nil
 	})
 
+	sidebar := tview.NewFlex().
+		SetDirection(tview.FlexRow).
+		AddItem(explorer, 0, 1, true).
+		AddItem(explorer2, 0, 1, true)
+
 	main := tview.NewFlex().
-		AddItem(explorer, 24, 1, true).
+		AddItem(sidebar, 24, 1, true).
 		AddItem(contentView, 0, 1, false)
 
 	root := tview.NewFlex().
@@ -64,10 +72,16 @@ func Run() {
 
 	app.SetRoot(root, true).SetFocus(root)
 
-	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	sidebar.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch {
-		case explorer.HasFocus() && (event.Key() == tcell.KeyEscape || event.Rune() == 'q'):
+		case event.Key() == tcell.KeyEscape || event.Rune() == 'q':
 			app.Stop()
+		case event.Key() == tcell.KeyTab:
+			if explorer.HasFocus() {
+				app.SetFocus(explorer2)
+			} else {
+				app.SetFocus(explorer)
+			}
 		default:
 			return event
 		}
