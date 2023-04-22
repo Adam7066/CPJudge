@@ -9,8 +9,16 @@ import (
 	"github.com/rivo/tview"
 )
 
+func initDir(dir string) {
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		os.MkdirAll(dir, 0755)
+	}
+}
+
 func Run() {
 	app := tview.NewApplication()
+
+	initDir(env.OutputPath)
 	explorer := NewExplorer(env.OutputPath)
 	contentView := NewContentView()
 
@@ -19,7 +27,7 @@ func Run() {
 		contentView.Load(path)
 	})
 
-	explorer.SetSelectedFunc(func(node *tview.TreeNode) {
+	explorer.SetSelectedFunc(func(*tview.TreeNode) {
 		app.SetFocus(contentView)
 	})
 
