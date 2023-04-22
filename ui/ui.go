@@ -48,6 +48,12 @@ func Run() {
 				cmd.Stderr = os.Stderr
 				cmd.Run()
 			})
+		case event.Rune() == 'd':
+			node1 := explorer.GetCurrentNode()
+			path1 := node1.GetReference().(string)
+			node2 := explorer2.GetCurrentNode()
+			path2 := node2.GetReference().(string)
+			contentView.LoadDiff(path2, path1, "※※※※※※※※※※")
 		default:
 			return event
 		}
