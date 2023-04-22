@@ -64,19 +64,21 @@ func NewExplorer(dir string) *Explorer {
 	e.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch {
 		case event.Key() == tcell.KeyLeft:
-			if e.cur.Prev() != nil {
-				e.cur = e.cur.Prev()
-				e.pos--
-				e.UpdateRoot()
-				e.UpdateTitle()
+			if e.cur == nil || e.cur.Prev() == nil {
+				break
 			}
+			e.cur = e.cur.Prev()
+			e.pos--
+			e.UpdateRoot()
+			e.UpdateTitle()
 		case event.Key() == tcell.KeyRight:
-			if e.cur.Next() != nil {
-				e.cur = e.cur.Next()
-				e.pos++
-				e.UpdateRoot()
-				e.UpdateTitle()
+			if e.cur == nil || e.cur.Next() == nil {
+				break
 			}
+			e.cur = e.cur.Next()
+			e.pos++
+			e.UpdateRoot()
+			e.UpdateTitle()
 		default:
 			return event
 		}
@@ -91,6 +93,9 @@ func (e *Explorer) UpdateTitle() {
 }
 
 func (e *Explorer) UpdateRoot() {
+	if e.cur == nil {
+		return
+	}
 	root := e.cur.Value.(*tview.TreeNode)
 	e.SetRoot(root).SetCurrentNode(root)
 	// force refresh
