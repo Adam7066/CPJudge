@@ -19,6 +19,7 @@ var WorkingPath string
 var SharePath string
 var OutputPath string
 var AnsPath string
+var ProblemPrefix string
 
 var hwInfo = getHWEnv()
 
@@ -29,6 +30,7 @@ func getHWEnv() map[string]string {
 	}
 	ret := make(map[string]string)
 	ret["HWZip"] = os.Getenv("HWZip")
+	ret["ProblemPrefix"] = os.Getenv("ProblemPrefix")
 	return ret
 }
 
@@ -43,4 +45,5 @@ func InitEnv(rootPath string) {
 	JudgeEnvPath = filepath.Join(rootPath, "judgeEnv")
 	WorkingPath = filepath.Join(JudgeEnvPath, "working_copy")
 	SharePath = filepath.Join(JudgeEnvPath, "share")
+	ProblemPrefix = hwInfo["ProblemPrefix"]
 }
