@@ -189,7 +189,10 @@ func main() {
 	makefileName, makefilePath := findMakefile("./stu/")
 	stuFileDirPath := strings.Split(makefilePath, "/"+makefileName)[0]
 	runMake(stuFileDirPath)
-	limitTime := flag.Int("limitTime", 1, "limit time for each testcase")
+	var limitTime int
+	var problemPrefix string
+	flag.IntVar(&limitTime, "limitTime", 1, "limit time for each testcase")
+	flag.StringVar(&problemPrefix, "problemPrefix", "hw", "problem prefix")
 	flag.Parse()
-	runJudge(stuFileDirPath, *limitTime)
+	runJudge(stuFileDirPath, limitTime)
 }
