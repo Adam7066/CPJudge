@@ -8,6 +8,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/otiai10/copy v1.9.0
 	github.com/rivo/tview v0.0.0-20230406072732-e22ce9588bb4
+	github.com/schaepher/gomics v1.0.0
 	golang.org/x/image v0.7.0
 	golang.org/x/text v0.9.0
 )
