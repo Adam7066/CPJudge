@@ -44,14 +44,14 @@ func runMake(stuFileDirPath string) {
 	cmd.Run()
 }
 
-func runJudge(stuFileDirPath string, limitTime int) {
+func runJudge(stuFileDirPath string, limitTime int, problemPrefix string) {
 	testcasePath := "./testcase"
 	outputPath := "./output"
 	filepath.Walk(testcasePath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if !info.IsDir() && strings.Contains(path, "hw") {
+		if !info.IsDir() && strings.Contains(path, problemPrefix) {
 			problem := strings.Split(path, "/")[1]
 			testcase := strings.Split(path, "/")[2]
 			os.MkdirAll(filepath.Join(outputPath, problem), os.ModePerm)
@@ -123,7 +123,10 @@ func main() {
 	makefileName, makefilePath := findMakefile("./stu/")
 	stuFileDirPath := strings.Split(makefilePath, "/"+makefileName)[0]
 	runMake(stuFileDirPath)
-	limitTime := flag.Int("limitTime", 1, "limit time for each testcase")
+	var limitTime int
+	var problemPrefix string
+	flag.IntVar(&limitTime, "limitTime", 1, "limit time for each testcase")
+	flag.StringVar(&problemPrefix, "problemPrefix", "hw", "problem prefix")
 	flag.Parse()
-	runJudge(stuFileDirPath, *limitTime)
+	runJudge(stuFileDirPath, limitTime, problemPrefix)
 }
