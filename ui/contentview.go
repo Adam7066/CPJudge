@@ -26,6 +26,7 @@ func NewContentView() *ContentView {
 func (c *ContentView) Load(dir string) {
 	if c.HasPage(dir) {
 		c.SwitchToPage(dir)
+		c.SetTitle(dir)
 		return
 	}
 	f, err := os.Open(dir)
@@ -46,24 +47,27 @@ func (c *ContentView) Load(dir string) {
 	default:
 		c.LoadReader(f, dir)
 	}
+	c.SetTitle(dir)
 }
 
 func (c *ContentView) LoadString(s, name string) {
+	if c.HasPage(name) {
+		c.SwitchToPage(name)
+		c.SetTitle(name)
+		return
+	}
 	textView := tview.NewTextView().
 		SetDynamicColors(true)
 	textView.SetText(tview.TranslateANSI(s))
 	c.AddAndSwitchToPage(name, textView, true)
+	c.SetTitle(name)
 }
 
 func (c *ContentView) LoadDiff(srcDir, dstDir, checkpoint string) {
 	name := fmt.Sprintf("%s -> %s", srcDir, dstDir)
 	if c.HasPage(name) {
-		if cur, _ := c.GetFrontPage(); cur == name {
-			c.RemovePage(name)
-			return
-		}
-		c.SetTitle(name)
 		c.SwitchToPage(name)
+		c.SetTitle(name)
 		return
 	}
 	src, err := os.ReadFile(srcDir)
@@ -75,14 +79,20 @@ func (c *ContentView) LoadDiff(srcDir, dstDir, checkpoint string) {
 		panic(err)
 	}
 	diff := uiutil.Diff(string(src), string(dst), checkpoint)
-	c.SetTitle(name)
 	c.LoadString(diff, name)
+	c.SetTitle(name)
 }
 
 func (c *ContentView) LoadReader(r io.Reader, name string) {
+	if c.HasPage(name) {
+		c.SwitchToPage(name)
+		c.SetTitle(name)
+		return
+	}
 	textView := tview.NewTextView().
 		SetDynamicColors(true)
 	w := tview.ANSIWriter(textView)
 	io.Copy(w, r)
 	c.AddAndSwitchToPage(name, textView, true)
+	c.SetTitle(name)
 }
