@@ -2,8 +2,11 @@ package ui
 
 import (
 	"CPJudge/env"
+	"CPJudge/myPath"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"strings"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -25,9 +28,31 @@ func Run() {
 
 	contentView := NewContentView()
 
-	explorer.SetChangedFunc(func(node *tview.TreeNode) {
+	showingDiff := false
+
+	loadView := func() {
+		node := explorer.GetCurrentNode()
 		path := node.GetReference().(string)
-		contentView.Load(path)
+
+		problem, testcase := func() (string, string) {
+			parts := strings.Split(path, "/")
+			return parts[len(parts)-2], parts[len(parts)-1]
+		}()
+		switch showingDiff {
+		case true:
+			ansPath := filepath.Join(env.AnsPath, problem, testcase)
+			if myPath.Exists(ansPath) {
+				contentView.LoadDiff(ansPath, path, "※※※※※※※※※※")
+				break
+			}
+			fallthrough
+		case false:
+			contentView.Load(path)
+		}
+	}
+
+	explorer.SetChangedFunc(func(*tview.TreeNode) {
+		loadView()
 	})
 
 	explorer.SetSelectedFunc(func(*tview.TreeNode) {
@@ -48,12 +73,7 @@ func Run() {
 				cmd.Stderr = os.Stderr
 				cmd.Run()
 			})
-		case event.Rune() == 'd':
-			node1 := explorer.GetCurrentNode()
-			path1 := node1.GetReference().(string)
-			node2 := explorer2.GetCurrentNode()
-			path2 := node2.GetReference().(string)
-			contentView.LoadDiff(path2, path1, "※※※※※※※※※※")
+
 		default:
 			return event
 		}
@@ -88,6 +108,9 @@ func Run() {
 			} else {
 				app.SetFocus(explorer)
 			}
+		case event.Rune() == 'd':
+			showingDiff = !showingDiff
+			loadView()
 		default:
 			return event
 		}
