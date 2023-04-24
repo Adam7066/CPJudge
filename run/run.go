@@ -132,7 +132,11 @@ func execJudge(execPath, inputDir, outputDir, errorDir, valgrindDir string, limi
 	select {
 	case <-time.After(time.Duration(limitTime) * time.Second):
 		if err := cmd.Process.Signal(syscall.SIGTERM); err != nil {
-			cmd.Process.Kill()
+			fmt.Fprintf(errorFile, "failed to terminate process: %s", err)
+			err = cmd.Process.Kill()
+			if err != nil {
+				fmt.Fprintf(errorFile, "failed to kill process: %s", err)
+			}
 		}
 		return fmt.Errorf("process killed as timeout reached")
 	case err := <-done:
