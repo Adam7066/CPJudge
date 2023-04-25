@@ -52,7 +52,7 @@ func JudgeStu(stuExtractPath string) error {
 	}
 	defer errorFile.Close()
 	cmd := exec.Command(
-		"docker", "compose", "run", "--rm",
+		"docker-compose", "run", "--rm",
 		"--name", "cpjudge", "homework",
 		"/bin/bash", "-c",
 		fmt.Sprintf("./autoJudge --limitTime=%d --maxWorkers=%d",
