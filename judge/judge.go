@@ -13,7 +13,7 @@ import (
 	cp "github.com/otiai10/copy"
 )
 
-func judgeStu(stuExtractPath string) error {
+func JudgeStu(stuExtractPath string) error {
 	var shareStuDir = filepath.Join(env.SharePath, "stu")
 	// Copy student code to share/stu
 	err := os.RemoveAll(shareStuDir)
@@ -77,7 +77,7 @@ func AutoRun() {
 			return err
 		}
 		if info.IsDir() && path != env.ExtractPath {
-			if err := judgeStu(path); err != nil {
+			if err := JudgeStu(path); err != nil {
 				return err
 			}
 			return filepath.SkipDir
