@@ -23,8 +23,6 @@ func Run() {
 
 	initDir(env.OutputPath)
 	explorer := NewExplorer(env.OutputPath)
-	initDir(env.AnsPath)
-	explorer2 := NewExplorer(env.AnsPath)
 
 	contentView := NewContentView()
 
@@ -82,8 +80,7 @@ func Run() {
 
 	sidebar := tview.NewFlex().
 		SetDirection(tview.FlexRow).
-		AddItem(explorer, 0, 1, true).
-		AddItem(explorer2, 0, 1, true)
+		AddItem(explorer, 0, 1, true)
 
 	main := tview.NewFlex().
 		AddItem(sidebar, 24, 1, true).
@@ -102,12 +99,6 @@ func Run() {
 		switch {
 		case event.Key() == tcell.KeyEscape || event.Rune() == 'q':
 			app.Stop()
-		case event.Key() == tcell.KeyTab:
-			if explorer.HasFocus() {
-				app.SetFocus(explorer2)
-			} else {
-				app.SetFocus(explorer)
-			}
 		case event.Rune() == 'd':
 			showingDiff = !showingDiff
 			loadView()
