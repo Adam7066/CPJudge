@@ -37,10 +37,7 @@ func buildFileTree(dir string) *tview.TreeNode {
 	return m[dir]
 }
 
-func NewExplorer(dir string) *Explorer {
-	treeView := tview.NewTreeView()
-	treeView.SetBorder(true)
-
+func (e *Explorer) init(dir string) {
 	list := list.New()
 	dirEntries, err := os.ReadDir(dir)
 	if err != nil {
@@ -52,14 +49,20 @@ func NewExplorer(dir string) *Explorer {
 		list.PushBack(root)
 	}
 
-	e := &Explorer{
-		TreeView: treeView,
-		list:     list,
-		cur:      list.Front(),
-	}
+	e.list = list
+	e.cur = list.Front()
+	e.pos = 0
 
 	e.UpdateRoot()
 	e.UpdateTitle()
+}
+
+func NewExplorer(dir string) *Explorer {
+	treeView := tview.NewTreeView()
+	treeView.SetBorder(true)
+
+	e := &Explorer{TreeView: treeView}
+	e.init(dir)
 
 	e.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch {
@@ -100,4 +103,8 @@ func (e *Explorer) UpdateRoot() {
 	e.SetRoot(root).SetCurrentNode(root)
 	// force refresh
 	e.TreeView.Move(-1)
+}
+
+func (e *Explorer) Reload() {
+	e.init(filepath.Dir(e.GetRoot().GetReference().(string)))
 }
