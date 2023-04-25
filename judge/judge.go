@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/Adam7066/golang/log"
@@ -53,10 +52,13 @@ func JudgeStu(stuExtractPath string) error {
 	}
 	defer errorFile.Close()
 	cmd := exec.Command(
-		"docker-compose", "run", "--rm",
+		"docker", "compose", "run", "--rm",
 		"--name", "cpjudge", "homework",
 		"/bin/bash", "-c",
-		"./autoJudge --limitTime="+strconv.Itoa(env.LimitTime)+" --problemPrefix="+env.ProblemPrefix,
+		fmt.Sprintf("./autoJudge --limitTime=%d --maxWorkers=%d",
+			env.LimitTime,
+			env.MaxWorkers,
+		),
 	)
 	cmd.Dir = env.JudgeEnvPath
 	cmd.Stdin = os.Stdin

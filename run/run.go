@@ -67,7 +67,7 @@ func runMake(stuFileDirPath string) {
 	cmd.Run()
 }
 
-func GetProblems() []*Problem {
+func getProblems() []*Problem {
 	problemDirEntries, err := os.ReadDir(testcasePath)
 	if err != nil {
 		return nil
@@ -112,10 +112,10 @@ func execJudge(execPath, inputDir, outputDir, errorDir, valgrindDir string, limi
 	}
 	defer errorFile.Close()
 	cmd := exec.Command(
-		"valgrind",
-		"--leak-check=full",
-		fmt.Sprintf("--log-file=%s", valgrindDir),
-		"./"+execName,
+		// "valgrind",
+		// "--leak-check=full",
+		// fmt.Sprintf("--log-file=%s", valgrindDir),
+		"./" + execName,
 	)
 	cmd.Dir = execDir
 	cmd.Stdin = inputFile
@@ -147,8 +147,18 @@ func execJudge(execPath, inputDir, outputDir, errorDir, valgrindDir string, limi
 	return nil
 }
 
-func runJudge(stuFileDirPath string, limitTime int) {
-	problems := GetProblems()
+type testJob struct {
+	idx      int
+	testcase *Testcase
+}
+
+type testResult struct {
+	idx int
+	err error
+}
+
+func runJudge(stuFileDirPath string, limitTime, numWorkers int) {
+	problems := getProblems()
 
 	for _, problem := range problems {
 		os.MkdirAll(filepath.Join(outputPath, problem.Name), os.ModePerm)
@@ -161,11 +171,11 @@ func runJudge(stuFileDirPath string, limitTime int) {
 			fmt.Fprintf(problemErrorFile, "Can't find %s file", problem.Name)
 			continue
 		}
+
 		wg := &sync.WaitGroup{}
-		execErrors := make([]error, len(problem.Testcases))
-		for i, testcase := range problem.Testcases {
-			wg.Add(1)
-			go func(idx int, testcaseName string) {
+		worker := func(jobs <-chan testJob, results chan<- testResult) {
+			for job := range jobs {
+				testcaseName := job.testcase.Name
 				err := execJudge(
 					filepath.Join(stuFileDirPath, problem.Name),
 					filepath.Join(testcasePath, problem.Name, testcaseName),
@@ -174,16 +184,34 @@ func runJudge(stuFileDirPath string, limitTime int) {
 					filepath.Join(outputPath, problem.Name, "valgrind_"+testcaseName),
 					limitTime,
 				)
-				if err != nil {
-					execErrors[idx] = fmt.Errorf("Problem: %s, Testcase: %s, Error: %s", problem.Name, testcaseName, err.Error())
-				}
-				wg.Done()
-			}(i, testcase.Name)
+				results <- testResult{job.idx, err}
+			}
+			wg.Done()
 		}
+
+		testJobs := make(chan testJob, len(problem.Testcases))
+		testResults := make(chan testResult, len(problem.Testcases))
+		for w := 0; w < numWorkers; w++ {
+			wg.Add(1)
+			go worker(testJobs, testResults)
+		}
+
+		for i, testcase := range problem.Testcases {
+			testJobs <- testJob{i, testcase}
+		}
+		close(testJobs)
 		wg.Wait()
+
+		execErrors := make([]error, len(problem.Testcases))
+		for range execErrors {
+			result := <-testResults
+			if result.err != nil {
+				execErrors[result.idx] = fmt.Errorf("Testcase %s: %s", problem.Testcases[result.idx].Name, result.err)
+			}
+		}
 		for _, err := range execErrors {
 			if err != nil {
-				fmt.Fprintln(problemErrorFile, err.Error())
+				fmt.Fprintln(problemErrorFile, err)
 			}
 		}
 	}
@@ -194,9 +222,9 @@ func main() {
 	stuFileDirPath := strings.Split(makefilePath, "/"+makefileName)[0]
 	runMake(stuFileDirPath)
 	var limitTime int
-	var problemPrefix string
+	var numWorkers int
 	flag.IntVar(&limitTime, "limitTime", 1, "limit time for each testcase")
-	flag.StringVar(&problemPrefix, "problemPrefix", "hw", "problem prefix")
+	flag.IntVar(&numWorkers, "numWorkers", 1, "number of workers")
 	flag.Parse()
-	runJudge(stuFileDirPath, limitTime)
+	runJudge(stuFileDirPath, limitTime, numWorkers)
 }
