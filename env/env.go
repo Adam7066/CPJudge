@@ -11,7 +11,8 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var LimitTime int
+var LimitTime int = 1
+var MaxWorkers int = 1
 var HWZipPath string
 var ExtractPath string
 var JudgeEnvPath string
@@ -36,8 +37,9 @@ func getHWEnv() map[string]string {
 
 func InitEnv(rootPath string) {
 	fmt.Print("Please input limit time (s), default=1: ")
-	LimitTime = 1
 	fmt.Scanln(&LimitTime)
+	fmt.Print("Please input max worker (s), default=1: ")
+	fmt.Scanln(&MaxWorkers)
 	HWZipPath = path.Join(rootPath, hwInfo["HWZip"])
 	ExtractPath = path.Join(rootPath, strings.Split(hwInfo["HWZip"], ".")[0]+"/extract/")
 	OutputPath = path.Join(rootPath, strings.Split(hwInfo["HWZip"], ".")[0]+"/output/")
