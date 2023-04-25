@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -37,10 +38,7 @@ func buildFileTree(dir string) *tview.TreeNode {
 	return m[dir]
 }
 
-func NewExplorer(dir string) *Explorer {
-	treeView := tview.NewTreeView()
-	treeView.SetBorder(true)
-
+func (e *Explorer) init(dir string) {
 	list := list.New()
 	dirEntries, err := os.ReadDir(dir)
 	if err != nil {
@@ -52,14 +50,20 @@ func NewExplorer(dir string) *Explorer {
 		list.PushBack(root)
 	}
 
-	e := &Explorer{
-		TreeView: treeView,
-		list:     list,
-		cur:      list.Front(),
-	}
+	e.list = list
+	e.cur = list.Front()
+	e.pos = 0
 
 	e.UpdateRoot()
 	e.UpdateTitle()
+}
+
+func NewExplorer(dir string) *Explorer {
+	treeView := tview.NewTreeView()
+	treeView.SetBorder(true)
+
+	e := &Explorer{TreeView: treeView}
+	e.init(dir)
 
 	e.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch {
@@ -100,4 +104,36 @@ func (e *Explorer) UpdateRoot() {
 	e.SetRoot(root).SetCurrentNode(root)
 	// force refresh
 	e.TreeView.Move(-1)
+}
+
+func (e *Explorer) Reload() {
+	e.init(filepath.Dir(e.GetRoot().GetReference().(string)))
+}
+
+func (e *Explorer) JumpTo(dir string) {
+	for pos, cur := 0, e.list.Front(); cur != nil; pos, cur = pos+1, cur.Next() {
+		root := cur.Value.(*tview.TreeNode)
+		if !strings.HasPrefix(dir, root.GetReference().(string)) {
+			continue
+		}
+		e.cur = cur
+		e.pos = pos
+		e.UpdateRoot()
+		e.UpdateTitle()
+	L:
+		for cur := root; ; {
+			if cur.GetReference().(string) == dir {
+				e.SetCurrentNode(cur)
+				break
+			}
+			for _, child := range cur.GetChildren() {
+				if strings.HasPrefix(dir, child.GetReference().(string)) {
+					cur = child
+					continue L
+				}
+			}
+			break
+		}
+		break
+	}
 }
