@@ -2,7 +2,9 @@ package ui
 
 import (
 	"CPJudge/env"
+	"CPJudge/judge"
 	"CPJudge/myPath"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -102,6 +104,18 @@ func Run() {
 		case event.Rune() == 'd':
 			showingDiff = !showingDiff
 			loadView()
+		case event.Rune() == 'r':
+			explorer.Reload()
+		case event.Rune() == 'x':
+			app.Suspend(func() {
+				node := explorer.GetCurrentNode()
+				path := node.GetReference().(string)
+				rel := strings.TrimPrefix(path, env.OutputPath+"/")
+				stuExtractPath := filepath.Join(env.ExtractPath, strings.Split(rel, "/")[0])
+				judge.JudgeStu(stuExtractPath)
+				fmt.Println("Press Enter to continue...")
+				fmt.Scanln()
+			})
 		default:
 			return event
 		}
