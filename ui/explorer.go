@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -107,4 +108,32 @@ func (e *Explorer) UpdateRoot() {
 
 func (e *Explorer) Reload() {
 	e.init(filepath.Dir(e.GetRoot().GetReference().(string)))
+}
+
+func (e *Explorer) JumpTo(dir string) {
+	for pos, cur := 0, e.list.Front(); cur != nil; pos, cur = pos+1, cur.Next() {
+		root := cur.Value.(*tview.TreeNode)
+		if !strings.HasPrefix(dir, root.GetReference().(string)) {
+			continue
+		}
+		e.cur = cur
+		e.pos = pos
+		e.UpdateRoot()
+		e.UpdateTitle()
+	L:
+		for cur := root; ; {
+			if cur.GetReference().(string) == dir {
+				e.SetCurrentNode(cur)
+				break
+			}
+			for _, child := range cur.GetChildren() {
+				if strings.HasPrefix(dir, child.GetReference().(string)) {
+					cur = child
+					continue L
+				}
+			}
+			break
+		}
+		break
+	}
 }
