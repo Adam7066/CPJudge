@@ -22,3 +22,33 @@
 - zip 檔名資料夾下：
   - extract：解壓後學生繳交的檔案
   - output：自動批改後的檔案
+
+## 功能展示
+
+### 啟動設定
+
+可設定執行時間、平行處理數量、是否自動批改
+
+![main](https://i.imgur.com/BsKayU2.png)
+
+### 檢視編譯狀況
+
+![out](https://i.imgur.com/9n0sg6t.png)
+![error](https://i.imgur.com/KevG8AL.png)
+
+### 顯示執行結果與正確答案比對
+
+可以切換顯示學生執行結果及與正確答案的差異
+
+![hw0201/1](https://i.imgur.com/QIpwmlf.png)
+![hw0201/1/diff](https://i.imgur.com/VVTqGO5.png)
+
+### 超時終止
+
+![timeout](https://i.imgur.com/6OA8q3Z.png)
+
+### 全螢幕顯示
+
+套用 less 指令顯示詳細檔案內容
+
+![full screen](https://i.imgur.com/fqrY6Uw.png)
