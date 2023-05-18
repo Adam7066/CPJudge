@@ -7,7 +7,9 @@
 ### 前置作業
 
 1. 將 moodle 下載的 zip 檔放在 `根目錄下`
-2. 修改 `.env` 中的 `HWZip` 為 zip 檔名
+2. 修改 `config.yaml`：
+   - `HWZip` 為 zip 檔名
+   - `CopyFiles` 為要複製出來的檔案 (e.g. `output.bmp`)
 3. 將要複製進去的檔案放在：`judgeEnv/share/copy` 下
 4. 將測資放在：`judgeEnv/share/testcase` 下
    - 並以執行檔的名稱包一層資料夾 => `judgeEnv/share/testcase/執行檔名/測資`
