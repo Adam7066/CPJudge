@@ -114,11 +114,11 @@ func ExecCommands(problem, testcase string) []string {
 }
 
 func CopyFiles(problem, testcase string) []string {
-	if viper.IsSet("judge." + problem + "." + testcase + ".copyFiles") {
-		return viper.GetStringSlice("judge." + problem + "." + testcase + ".copyFiles")
+	if viper.IsSet("judge." + problem + "." + testcase + ".copy") {
+		return viper.GetStringSlice("judge." + problem + "." + testcase + ".copy")
 	}
-	if viper.IsSet("judge." + problem + ".copyFiles") {
-		return viper.GetStringSlice("judge." + problem + ".copyFiles")
+	if viper.IsSet("judge." + problem + ".copy") {
+		return viper.GetStringSlice("judge." + problem + ".copy")
 	}
-	return viper.GetStringSlice("judge.copyFiles")
+	return viper.GetStringSlice("judge.copy")
 }

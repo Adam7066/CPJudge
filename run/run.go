@@ -117,6 +117,15 @@ func execJudge(fs *testcase.FS, dir, problem, testcase string) error {
 			}
 		}
 	}
+	for _, copyFile := range env.CopyFiles(problem, testcase) {
+		paths, err := filepath.Glob(filepath.Join(dir, copyFile))
+		if err != nil {
+			return fmt.Errorf("failed to find copy file: %s", err)
+		}
+		for _, path := range paths {
+			os.Rename(path, filepath.Join(outputPath, problem, testcase+"_"+filepath.Base(path)))
+		}
+	}
 	return nil
 }
 
