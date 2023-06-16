@@ -11,10 +11,7 @@ cmds = [
 ]
 
 problems = [
-  "hw0301",
-  "hw0302",
-  "hw0303",
-  "hw0304",
+  "hw0305",
 ]
 
 [judge.hw0301]
@@ -45,4 +42,9 @@ cmds = [
   "./{name} -i test{case}.pdf maldives{case}.bmp",
   "rm test{case}.pdf",
   "./{name} -e maldives{case}.bmp",
+]
+
+[judge.hw0305]
+copy = [
+  "*.mid",
 ]
