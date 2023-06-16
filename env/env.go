@@ -2,10 +2,12 @@ package env
 
 import (
 	"embed"
+	"fmt"
 	"path/filepath"
 	"strings"
 
 	"github.com/Adam7066/golang/log"
+	"github.com/mattn/go-shellwords"
 	"github.com/spf13/viper"
 )
 
@@ -13,14 +15,17 @@ import (
 var fs embed.FS
 
 var (
-	HW           string
-	HWZipPath    string
-	ExtractPath  string
-	JudgeEnvPath string
-	WorkingPath  string
-	SharePath    string
-	OutputPath   string
-	AnsPath      string
+	HW            string
+	DockerCmd     string
+	DockerArgs    []string
+	JudgeFileName string
+	HWZipPath     string
+	ExtractPath   string
+	JudgeEnvPath  string
+	WorkingPath   string
+	SharePath     string
+	OutputPath    string
+	AnsPath       string
 )
 
 func init() {
@@ -35,6 +40,8 @@ func init() {
 		log.Error.Fatalln("Cannot read config.toml")
 	}
 	viper.SetDefault("HW", "*")
+	viper.SetDefault("docker-compose.cmd", "docker-compose")
+	viper.SetDefault("judge.filename", "./autoJudge")
 	viper.SetDefault("judge.timeLimit", 1)
 	viper.SetDefault("judge.numWorkers", 1)
 	viper.SetDefault("judge.cmds", []string{"./{name}"})
@@ -42,6 +49,9 @@ func init() {
 
 	HW = viper.GetString("HW")
 	HWZipPath = filepath.Join(HW + ".zip")
+	dockerCommand := viper.GetString("docker-compose.cmd")
+	JudgeFileName = viper.GetString("judge.filename")
+	DockerCmd, DockerArgs = parseDockerCommand(dockerCommand, JudgeFileName)
 	ExtractPath = filepath.Join(HW, "extract")
 	OutputPath = filepath.Join(HW, "output")
 	AnsPath = filepath.Join(HW, "ans")
@@ -62,6 +72,15 @@ func replaceCommands(commands []string, problem string, testcase string) []strin
 		ret = append(ret, replaceCommand(command, problem, testcase))
 	}
 	return ret
+}
+
+func parseDockerCommand(dockerCommand string, judgeFileName string) (name string, args []string) {
+	cmd := fmt.Sprintf("%s run --rm --name cpjudge homework /bin/bash -c %s", dockerCommand, judgeFileName)
+	ret, err := shellwords.Parse(cmd)
+	if err != nil {
+		log.Error.Fatalln("Cannot parse docker command")
+	}
+	return ret[0], ret[1:]
 }
 
 func NumWorkers(problem string) int {
