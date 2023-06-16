@@ -1,8 +1,8 @@
 package main
 
 import (
+	"CPJudge/env"
 	"CPJudge/myPath"
-	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -93,7 +93,7 @@ func getProblems() []*Problem {
 	return problems
 }
 
-func execJudge(execPath, inputDir, outputDir, errorDir, valgrindDir string, limitTime int) error {
+func execJudge(execPath, inputDir, outputDir, errorDir string, limitTime int) error {
 	execDir := filepath.Dir(execPath)
 	execName := filepath.Base(execPath)
 	inputFile, err := os.Open(inputDir)
@@ -112,9 +112,6 @@ func execJudge(execPath, inputDir, outputDir, errorDir, valgrindDir string, limi
 	}
 	defer errorFile.Close()
 	cmd := exec.Command(
-		// "valgrind",
-		// "--leak-check=full",
-		// fmt.Sprintf("--log-file=%s", valgrindDir),
 		"./" + execName,
 	)
 	cmd.Dir = execDir
@@ -157,7 +154,7 @@ type testResult struct {
 	err error
 }
 
-func runJudge(stuFileDirPath string, limitTime, numWorkers int) {
+func runJudge(stuFileDirPath string) {
 	problems := getProblems()
 
 	for _, problem := range problems {
@@ -181,8 +178,7 @@ func runJudge(stuFileDirPath string, limitTime, numWorkers int) {
 					filepath.Join(testcasePath, problem.Name, testcaseName),
 					filepath.Join(outputPath, problem.Name, testcaseName),
 					filepath.Join(outputPath, problem.Name, "err_"+testcaseName),
-					filepath.Join(outputPath, problem.Name, "valgrind_"+testcaseName),
-					limitTime,
+					env.LimitTime(problem.Name, testcaseName),
 				)
 				results <- testResult{job.idx, err}
 			}
@@ -191,7 +187,7 @@ func runJudge(stuFileDirPath string, limitTime, numWorkers int) {
 
 		testJobs := make(chan testJob, len(problem.Testcases))
 		testResults := make(chan testResult, len(problem.Testcases))
-		for w := 0; w < numWorkers; w++ {
+		for w := 0; w < env.NumWorkers(problem.Name); w++ {
 			wg.Add(1)
 			go worker(testJobs, testResults)
 		}
@@ -221,10 +217,5 @@ func main() {
 	makefileName, makefilePath := findMakefile("./stu/")
 	stuFileDirPath := strings.Split(makefilePath, "/"+makefileName)[0]
 	runMake(stuFileDirPath)
-	var limitTime int
-	var numWorkers int
-	flag.IntVar(&limitTime, "limitTime", 1, "limit time for each testcase")
-	flag.IntVar(&numWorkers, "numWorkers", 1, "number of workers")
-	flag.Parse()
-	runJudge(stuFileDirPath, limitTime, numWorkers)
+	runJudge(stuFileDirPath)
 }
