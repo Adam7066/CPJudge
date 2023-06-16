@@ -51,12 +51,7 @@ func JudgeStu(stuExtractPath string) error {
 		return err
 	}
 	defer errorFile.Close()
-	cmd := exec.Command(
-		"docker-compose", "run", "--rm",
-		"--name", "cpjudge", "homework",
-		"/bin/bash", "-c",
-		"./autoJudge",
-	)
+	cmd := exec.Command(env.DockerCmd, env.DockerArgs...)
 	cmd.Dir = env.JudgeEnvPath
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = outFile

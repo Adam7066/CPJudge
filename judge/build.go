@@ -1,6 +1,7 @@
 package judge
 
 import (
+	"CPJudge/env"
 	"os"
 	"os/exec"
 	"runtime"
@@ -9,7 +10,7 @@ import (
 func GenJudgeFile(rootPath string) {
 	cmd := exec.Command(
 		"go", "build",
-		"-o", "autoJudge",
+		"-o", env.JudgeFileName,
 		"./run/run.go",
 	)
 	cmd.Dir = rootPath
