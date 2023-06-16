@@ -1,0 +1,48 @@
+HW = "HW03"
+
+[docker-compose]
+cmd = "docker-compose"  # or "docker compose"
+
+[judge]
+numWorkers = 1
+timeLimit = 1
+cmds = [
+  "./{name}",
+]
+
+problems = [
+  "hw0301",
+  "hw0302",
+  "hw0303",
+  "hw0304",
+]
+
+[judge.hw0301]
+
+[judge.hw0302]
+numWorkers = 2
+timeLimit = 5
+cmds = [
+  "valgrind --leak-check=full -log-file=valgrind{case}.log ./{name}",
+]
+
+[judge.hw0303]
+cmds = [
+  "./{name} -x 500 -y 300 -w 100 -h 100 -n 10 -i spy{case}.bmp -o spy{case}-2.bmp",
+]
+copy = [
+  "spy{case}-2.bmp",
+]
+
+[judge.hw0304]
+copy = [
+  "*.pdf",
+  "*.txt",
+]
+
+[judge.hw0304.1]
+cmds = [
+  "./{name} -i test{case}.pdf maldives{case}.bmp",
+  "rm test{case}.pdf",
+  "./{name} -e maldives{case}.bmp",
+]

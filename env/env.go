@@ -1,50 +1,102 @@
 package env
 
 import (
-	"fmt"
-	"path"
+	"embed"
 	"path/filepath"
 	"strings"
 
+	"github.com/Adam7066/golang/log"
 	"github.com/spf13/viper"
 )
 
-var LimitTime int = 1
-var MaxWorkers int = 1
-var HWZipPath string
-var ExtractPath string
-var JudgeEnvPath string
-var WorkingPath string
-var SharePath string
-var OutputPath string
-var AnsPath string
+//go:embed config.toml
+var fs embed.FS
 
-var HWZip string
-var CopyFiles []string
+var (
+	HW           string
+	HWZipPath    string
+	ExtractPath  string
+	JudgeEnvPath string
+	WorkingPath  string
+	SharePath    string
+	OutputPath   string
+	AnsPath      string
+)
 
-func getHWEnv() {
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(".")
-	err := viper.ReadInConfig()
+func init() {
+	f, err := fs.Open("config.toml")
 	if err != nil {
-		panic(err)
+		log.Error.Fatalln("Cannot open config.toml")
 	}
-	HWZip = viper.GetString("HWZip")
-	CopyFiles = viper.GetStringSlice("CopyFile")
-}
+	defer f.Close()
+	viper.SetConfigType("toml")
+	err = viper.ReadConfig(f)
+	if err != nil {
+		log.Error.Fatalln("Cannot read config.toml")
+	}
+	viper.SetDefault("HW", "*")
+	viper.SetDefault("judge.timeLimit", 1)
+	viper.SetDefault("judge.numWorkers", 1)
+	viper.SetDefault("judge.cmds", []string{"./{name}"})
+	viper.SetDefault("judge.copyFiles", []string{})
 
-func InitEnv(rootPath string) {
-	fmt.Print("Please input limit time (s), default=1: ")
-	fmt.Scanln(&LimitTime)
-	fmt.Print("Please input max worker (s), default=1: ")
-	fmt.Scanln(&MaxWorkers)
-	getHWEnv()
-	HWZipPath = path.Join(rootPath, HWZip)
-	ExtractPath = path.Join(rootPath, strings.Split(HWZip, ".")[0]+"/extract/")
-	OutputPath = path.Join(rootPath, strings.Split(HWZip, ".")[0]+"/output/")
-	AnsPath = path.Join(rootPath, strings.Split(HWZip, ".")[0]+"/ans/")
-	JudgeEnvPath = filepath.Join(rootPath, "judgeEnv")
+	HW = viper.GetString("HW")
+	HWZipPath = filepath.Join(HW + ".zip")
+	ExtractPath = filepath.Join(HW, "extract")
+	OutputPath = filepath.Join(HW, "output")
+	AnsPath = filepath.Join(HW, "ans")
+	JudgeEnvPath = "judgeEnv"
 	WorkingPath = filepath.Join(JudgeEnvPath, "working_copy")
 	SharePath = filepath.Join(JudgeEnvPath, "share")
+}
+
+func replaceCommand(command string, problem string, testcase string) string {
+	command = strings.ReplaceAll(command, "{name}", problem)
+	command = strings.ReplaceAll(command, "{case}", testcase)
+	return command
+}
+
+func replaceCommands(commands []string, problem string, testcase string) []string {
+	ret := make([]string, 0, len(commands))
+	for _, command := range commands {
+		ret = append(ret, replaceCommand(command, problem, testcase))
+	}
+	return ret
+}
+
+func NumWorkers(problem string) int {
+	if viper.IsSet("judge." + problem + ".numWorkers") {
+		return viper.GetInt("judge." + problem + ".numWorkers")
+	}
+	return viper.GetInt("judge.numWorkers")
+}
+
+func LimitTime(problem string, testcase string) int {
+	if viper.IsSet("judge." + problem + "." + testcase + ".timeLimit") {
+		return viper.GetInt("judge." + problem + "." + testcase + ".timeLimit")
+	}
+	if viper.IsSet("judge." + problem + ".timeLimit") {
+		return viper.GetInt("judge." + problem + ".timeLimit")
+	}
+	return viper.GetInt("judge.timeLimit")
+}
+
+func ExecCommands(problem string, testcase string) []string {
+	if viper.IsSet("judge." + problem + "." + testcase + ".cmds") {
+		return replaceCommands(viper.GetStringSlice("judge."+problem+"."+testcase+".cmds"), problem, testcase)
+	}
+	if viper.IsSet("judge." + problem + ".cmds") {
+		return replaceCommands(viper.GetStringSlice("judge."+problem+".cmds"), problem, testcase)
+	}
+	return replaceCommands(viper.GetStringSlice("judge.cmds"), problem, testcase)
+}
+
+func CopyFiles(problem string, testcase string) []string {
+	if viper.IsSet("judge." + problem + "." + testcase + ".copyFiles") {
+		return viper.GetStringSlice("judge." + problem + "." + testcase + ".copyFiles")
+	}
+	if viper.IsSet("judge." + problem + ".copyFiles") {
+		return viper.GetStringSlice("judge." + problem + ".copyFiles")
+	}
+	return viper.GetStringSlice("judge.copyFiles")
 }
