@@ -60,13 +60,13 @@ func init() {
 	SharePath = filepath.Join(JudgeEnvPath, "share")
 }
 
-func replaceCommand(command string, problem string, testcase string) string {
+func replaceCommand(command, problem, testcase string) string {
 	command = strings.ReplaceAll(command, "{name}", problem)
 	command = strings.ReplaceAll(command, "{case}", testcase)
 	return command
 }
 
-func replaceCommands(commands []string, problem string, testcase string) []string {
+func replaceCommands(commands []string, problem, testcase string) []string {
 	ret := make([]string, 0, len(commands))
 	for _, command := range commands {
 		ret = append(ret, replaceCommand(command, problem, testcase))
@@ -74,7 +74,7 @@ func replaceCommands(commands []string, problem string, testcase string) []strin
 	return ret
 }
 
-func parseDockerCommand(dockerCommand string, judgeFileName string) (name string, args []string) {
+func parseDockerCommand(dockerCommand, judgeFileName string) (name string, args []string) {
 	cmd := fmt.Sprintf("%s run --rm --name cpjudge homework /bin/bash -c %s", dockerCommand, judgeFileName)
 	ret, err := shellwords.Parse(cmd)
 	if err != nil {
@@ -90,7 +90,7 @@ func NumWorkers(problem string) int {
 	return viper.GetInt("judge.numWorkers")
 }
 
-func LimitTime(problem string, testcase string) int {
+func LimitTime(problem, testcase string) int {
 	if viper.IsSet("judge." + problem + "." + testcase + ".timeLimit") {
 		return viper.GetInt("judge." + problem + "." + testcase + ".timeLimit")
 	}
@@ -100,7 +100,7 @@ func LimitTime(problem string, testcase string) int {
 	return viper.GetInt("judge.timeLimit")
 }
 
-func ExecCommands(problem string, testcase string) []string {
+func ExecCommands(problem, testcase string) []string {
 	if viper.IsSet("judge." + problem + "." + testcase + ".cmds") {
 		return replaceCommands(viper.GetStringSlice("judge."+problem+"."+testcase+".cmds"), problem, testcase)
 	}
@@ -110,7 +110,7 @@ func ExecCommands(problem string, testcase string) []string {
 	return replaceCommands(viper.GetStringSlice("judge.cmds"), problem, testcase)
 }
 
-func CopyFiles(problem string, testcase string) []string {
+func CopyFiles(problem, testcase string) []string {
 	if viper.IsSet("judge." + problem + "." + testcase + ".copyFiles") {
 		return viper.GetStringSlice("judge." + problem + "." + testcase + ".copyFiles")
 	}
