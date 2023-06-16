@@ -1,6 +1,7 @@
 package main
 
 import (
+	"CPJudge/env"
 	"CPJudge/extract"
 	"CPJudge/judge"
 	"CPJudge/myPath"
@@ -9,6 +10,7 @@ import (
 )
 
 func main() {
+	fmt.Printf("Problems: %v\n", env.JudgeProblems)
 	rootPath := myPath.GetRootPath()
 	judge.GenJudgeFile(rootPath)
 	choice := "N"
