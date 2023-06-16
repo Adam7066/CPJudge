@@ -16,10 +16,10 @@ var fs embed.FS
 
 var (
 	HW            string
+	HWZipPath     string
 	DockerCmd     string
 	DockerArgs    []string
 	JudgeFileName string
-	HWZipPath     string
 	ExtractPath   string
 	JudgeEnvPath  string
 	WorkingPath   string
