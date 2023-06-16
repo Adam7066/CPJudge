@@ -73,53 +73,32 @@ func ExtractHomework() {
 		log.Error.Println(err)
 		return
 	}
-	// Rename the student folder
-	oldPathSlice := []string{}
-	newPathSlice := []string{}
-	err = filepath.Walk(env.ExtractPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.IsDir() && path != env.ExtractPath {
-			tmpSlice := strings.Split(path, "/")
-			newPath := "/"
-			for i := 0; i < len(tmpSlice)-1; i++ {
-				newPath = filepath.Join(newPath, tmpSlice[i])
-			}
-			newPath = filepath.Join(newPath, strings.Split(tmpSlice[len(tmpSlice)-1], "_")[0])
-			oldPathSlice = append(oldPathSlice, path)
-			newPathSlice = append(newPathSlice, newPath)
-		}
-		return nil
-	})
+
+	// Rename the homework
+	dirs, err := filepath.Glob(filepath.Join(env.ExtractPath, "*"))
 	if err != nil {
 		log.Error.Println(err)
 		return
 	}
-	for i := 0; i < len(oldPathSlice); i++ {
-		os.Rename(oldPathSlice[i], newPathSlice[i])
+	for _, dir := range dirs {
+		underscoreIdx := strings.Index(dir, "_")
+		newDir := dir[:underscoreIdx]
+		os.Rename(dir, newDir)
 	}
-	// Unzip student zip
-	err = filepath.Walk(env.ExtractPath, func(path string, _ os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if filepath.Ext(path) == ".zip" {
-			tmpSlice := strings.Split(path, "/")
-			stuDir := "/"
-			for i := 0; i < len(tmpSlice)-1; i++ {
-				stuDir = filepath.Join(stuDir, tmpSlice[i])
-			}
-			_, err := unzip(path, stuDir)
-			if err != nil {
-				return err
-			}
-			os.Remove(path)
-		}
-		return nil
-	})
+
+	// Unzip the zip files
+	zips, err := filepath.Glob(filepath.Join(env.ExtractPath, "*", "*.zip"))
 	if err != nil {
 		log.Error.Println(err)
 		return
+	}
+
+	for _, zip := range zips {
+		_, err := unzip(zip, filepath.Dir(zip))
+		if err != nil {
+			log.Error.Println(err)
+			return
+		}
+		os.Remove(zip)
 	}
 }
