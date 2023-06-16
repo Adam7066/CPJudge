@@ -55,10 +55,7 @@ func JudgeStu(stuExtractPath string) error {
 		"docker-compose", "run", "--rm",
 		"--name", "cpjudge", "homework",
 		"/bin/bash", "-c",
-		fmt.Sprintf("./autoJudge --limitTime=%d --numWorkers=%d",
-			env.LimitTime,
-			env.MaxWorkers,
-		),
+		"./autoJudge",
 	)
 	cmd.Dir = env.JudgeEnvPath
 	cmd.Stdin = os.Stdin
