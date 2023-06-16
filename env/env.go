@@ -20,6 +20,7 @@ var (
 	DockerCmd     string
 	DockerArgs    []string
 	JudgeFileName string
+	JudgeProblems []string
 	ExtractPath   string
 	JudgeEnvPath  string
 	WorkingPath   string
@@ -45,12 +46,14 @@ func init() {
 	viper.SetDefault("judge.timeLimit", 1)
 	viper.SetDefault("judge.numWorkers", 1)
 	viper.SetDefault("judge.cmds", []string{"./{name}"})
+	viper.SetDefault("judge.problems", []string{})
 	viper.SetDefault("judge.copyFiles", []string{})
 
 	HW = viper.GetString("HW")
 	HWZipPath = filepath.Join(HW + ".zip")
 	dockerCommand := viper.GetString("docker-compose.cmd")
 	JudgeFileName = viper.GetString("judge.filename")
+	JudgeProblems = viper.GetStringSlice("judge.problems")
 	DockerCmd, DockerArgs = parseDockerCommand(dockerCommand, JudgeFileName)
 	ExtractPath = filepath.Join(HW, "extract")
 	OutputPath = filepath.Join(HW, "output")
