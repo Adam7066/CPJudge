@@ -27,6 +27,7 @@ var (
 	SharePath     string
 	OutputPath    string
 	AnsPath       string
+	DiskLimit     int64
 )
 
 func init() {
@@ -48,6 +49,7 @@ func init() {
 	viper.SetDefault("judge.cmds", []string{"./{name}"})
 	viper.SetDefault("judge.problems", []string{})
 	viper.SetDefault("judge.copyFiles", []string{})
+	viper.SetDefault("judge.diskLimit", 5<<20)
 
 	HW = viper.GetString("HW")
 	HWZipPath = filepath.Join(HW + ".zip")
@@ -61,6 +63,7 @@ func init() {
 	JudgeEnvPath = "judgeEnv"
 	WorkingPath = filepath.Join(JudgeEnvPath, "working_copy")
 	SharePath = filepath.Join(JudgeEnvPath, "share")
+	DiskLimit = viper.GetInt64("judge.diskLimit")
 }
 
 func replaceCommand(command, problem, testcase string) string {
