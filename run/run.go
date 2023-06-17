@@ -67,6 +67,19 @@ func runMake(stuFileDirPath string) {
 	cmd.Run()
 }
 
+func checkDiskFull(path string, limit int64) chan bool {
+	ch := make(chan bool, 1)
+	go func() {
+		for {
+			time.Sleep(1 * time.Second)
+			if myPath.DiskUsage(path) > limit {
+				ch <- true
+			}
+		}
+	}()
+	return ch
+}
+
 func execJudge(fs *testcase.FS, dir, problem, testcase string) error {
 	// input
 	inputFile, err := fs.Open(problem, testcase)
@@ -106,6 +119,7 @@ func execJudge(fs *testcase.FS, dir, problem, testcase string) error {
 		if err != nil {
 			return err
 		}
+		diskFull := checkDiskFull(dir, env.DiskLimit)
 		done := make(chan error, 1)
 		go func() {
 			done <- cmd.Wait()
@@ -120,6 +134,15 @@ func execJudge(fs *testcase.FS, dir, problem, testcase string) error {
 				}
 			}
 			return fmt.Errorf("process killed as timeout reached")
+		case <-diskFull:
+			if err := cmd.Process.Signal(syscall.SIGTERM); err != nil {
+				fmt.Fprintf(errorFile, "failed to terminate process: %s", err)
+				err = cmd.Process.Kill()
+				if err != nil {
+					fmt.Fprintf(errorFile, "failed to kill process: %s", err)
+				}
+			}
+			return fmt.Errorf("process killed as disk full by size = %dK", myPath.DiskUsage(dir))
 		case err := <-done:
 			if err != nil {
 				return fmt.Errorf("process finished with error = %v", err)
