@@ -27,6 +27,15 @@ func init() {
 	outputPath, _ = filepath.Abs(outputPath)
 }
 
+func removeProblemExec(path string) {
+	problems := env.JudgeProblems
+
+	for _, problem := range problems {
+		path := filepath.Join(path, problem)
+		os.Remove(path)
+	}
+}
+
 func findMakefile(findPath string) (name, path string) {
 	retName := ""
 	retPath := ""
@@ -207,6 +216,7 @@ func runJudge(stuFileDirPath string) {
 func main() {
 	makefileName, makefilePath := findMakefile("./stu/")
 	stuFileDirPath := strings.Split(makefilePath, "/"+makefileName)[0]
+	removeProblemExec(stuFileDirPath)
 	runMake(stuFileDirPath)
 	runJudge(stuFileDirPath)
 }
