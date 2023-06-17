@@ -12,7 +12,13 @@ import (
 	cp "github.com/otiai10/copy"
 )
 
+func RemoveContainer() {
+	cmd := exec.Command("docker", "container", "remove", "cpjudge")
+	cmd.Run()
+}
+
 func JudgeStu(stuExtractPath string) error {
+	RemoveContainer()
 	var shareStuDir = filepath.Join(env.SharePath, "stu")
 	// Copy student code to share/stu
 	err := os.RemoveAll(shareStuDir)
