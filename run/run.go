@@ -49,7 +49,7 @@ func findMakefile(root string) (path string) {
 			return err
 		}
 		if !info.IsDir() && isMakefile(info.Name()) {
-			result = append(result, path)
+			result = append(result, filepath.Dir(path))
 		}
 		return nil
 	})
