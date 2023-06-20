@@ -62,6 +62,9 @@ func findMakefile(root string) (path string) {
 		}
 		return natsort.Less(result[i], result[j])
 	})
+	if len(result) == 0 {
+		return ""
+	}
 
 	return result[0]
 }
