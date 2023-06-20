@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"syscall"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/mattn/go-shellwords"
 	cp "github.com/otiai10/copy"
+	"github.com/schaepher/gomics/natsort"
 )
 
 var (
@@ -36,24 +38,32 @@ func removeProblemExec(path string) {
 	}
 }
 
-func findMakefile(findPath string) (name, path string) {
-	retName := ""
-	retPath := ""
-	filepath.Walk(findPath, func(path string, info os.FileInfo, err error) error {
+func isMakefile(path string) bool {
+	return strings.ToLower(path) == "makefile" || path == "GNUmakefile"
+}
+
+func findMakefile(root string) (path string) {
+	result := []string{}
+	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if retPath != "" {
-			return filepath.SkipDir
-		}
-		if !info.IsDir() && (strings.ToLower(info.Name()) == "makefile" || info.Name() == "GNUmakefile") {
-			retName = info.Name()
-			retPath = path
-			return nil
+		if !info.IsDir() && isMakefile(info.Name()) {
+			result = append(result, path)
 		}
 		return nil
 	})
-	return retName, retPath
+	sort.Slice(result, func(i, j int) bool {
+		len1 := len(strings.Split(result[i], string(os.PathSeparator)))
+		len2 := len(strings.Split(result[j], string(os.PathSeparator)))
+
+		if len1 != len2 {
+			return len1 < len2
+		}
+		return natsort.Less(result[i], result[j])
+	})
+
+	return result[0]
 }
 
 func runMake(stuFileDirPath string) {
@@ -237,8 +247,8 @@ func runJudge(stuFileDirPath string) {
 }
 
 func main() {
-	makefileName, makefilePath := findMakefile("./stu/")
-	stuFileDirPath := strings.Split(makefilePath, "/"+makefileName)[0]
+	makefilePath := findMakefile("./stu/")
+	stuFileDirPath := makefilePath
 	removeProblemExec(stuFileDirPath)
 	runMake(stuFileDirPath)
 	runJudge(stuFileDirPath)
